@@ -1,4 +1,7 @@
-'.'
+trigger:
+- main
+
+pr: none
 
 jobs:
 - job: Validate

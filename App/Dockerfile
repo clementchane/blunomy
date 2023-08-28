@@ -1,6 +1,7 @@
 # Use an official Python runtime as the base image
-FROM python:3.8-slim
+FROM python:3.8-alpine
 
+RUN mkdir /app
 # Set the working directory in the container
 WORKDIR /app
 
@@ -10,9 +11,6 @@ COPY requirements.txt /app/
 
 # Install any needed packages
 RUN pip install -r requirements.txt
-
-# Expose the port the app runs on
-EXPOSE 5000
 
 # Define the command to run your application
 CMD ["python", "app.py"]

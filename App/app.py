@@ -1,9 +1,15 @@
-# model.py
-import json
+from flask import Flask,jsonify,request
 
-def calculate_sum(data):
-    numbers = data.get('numbers', [])
-    total_sum = sum(numbers)
-    return {'sum': total_sum}
+app = Flask(__name__)
 
-# Flask or FastAPI can be used for creating a web service to expose the model
+@app.route('/returnjson', methods = ['GET'])
+def ReturnJSON():
+	if(request.method == 'GET'):
+		data = {
+			"Hello" : "World"
+		}
+
+		return jsonify(data)
+
+if __name__=='__main__':
+	app.run(debug=True)
