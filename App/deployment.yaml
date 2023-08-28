@@ -2,33 +2,50 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sum_app
+  name: pyapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: 
+      app: pyapp
   template:
     metadata:
       labels:
-        app: sum_app
+        app: pyapp
     spec:
       containers:
-        - name: sum_app
-          image: dockerhub/sum_app:1.0
+        - name: py_app
+          image: dockerhub/pyapp:1.0
           ports:
             - containerPort: 5000
-
+          resources:
+            limits:
+              cpu: "100m"
+              memory: "100m"
+      imagePullSecrets:
+        - name: {{ .Values.registrysecretname }}
+---
 # service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: model-service
+  name: py-service
 spec:
   selector:
-    app: model-app
+    app: pyapp
   ports:
     - protocol: TCP
       port: 80
       targetPort: 5000
   type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.registrysecretname }}
+  namespace: {{ .Values.namespace }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: |
+        {{ .Values.registrycredconfig }}

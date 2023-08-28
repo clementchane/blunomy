@@ -10,8 +10,9 @@ parameters:
 
 variables:
   dockerRegistryServiceConnection: 'testregistry'
-  imageRepository: 'sum_app'
+  imageRepository: 'pyapp'
   containerRegistry: 'testregistry'
+  tags: '0.1'
 
 stages:
 - stage: Build
@@ -34,43 +35,31 @@ stages:
 
     - task: PublishPipelineArtifact@1
       inputs:
-        artifactName: 'manifests'
-        path: 'manifests'
+        artifactName: 'pyapp'
+        path: 'pyapp'
 
 - stage: Deploy
   displayName: Deploy stage
   dependsOn: Build
   condition: and(succeeded(), eq('${{ parameters.deploy_to_env }}', 'true'))
   jobs:
-  - deployment: Deploy
-    displayName: Deploy job
-    pool:
-      vmImage: ubuntu-latest
-    environment: 'myenv.aksnamespace' #customize with your environment
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: KubernetesManifest@0
-            displayName: Create imagePullSecret
-            inputs:
-              action: createSecret
-              secretName: $(imagePullSecret)
-              namespace: $(k8sNamespace)
-              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-
-          - task: KubernetesManifest@0
-            displayName: Deploy to Kubernetes cluster
-            inputs:
-              action: deploy
-              namespace: $(k8sNamespace)
-              manifests: |
-                $(System.ArtifactsDirectory)/manifests/deployment.yml
-                $(System.ArtifactsDirectory)/manifests/service.yml
-              imagePullSecrets: |
-                $(imagePullSecret)
-              containers: |
-                $(containerRegistry)/$(imageRepository):$(tag)
-          
-          
+  - job: Deploy
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: 'manifests'
+        downloadPath: '$(System.ArtifactsDirectory)/manifests'
+    - task: KubernetesManifest@0
+      displayName: Deploy to Kubernetes cluster
+      inputs:
+        action: deploy
+        namespace: $(k8sNamespace)
+        manifests: |
+          $(System.ArtifactsDirectory)/manifests/deployment.yml
+        imagePullSecrets: |
+          $(imagePullSecret)
+        containers: |
+          $(containerRegistry)/$(imageRepository):$(tag)
+    
+    
 
