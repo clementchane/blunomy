@@ -1,0 +1,49 @@
+'.'
+
+jobs:
+- job: Validate
+  displayName: Terraform Validate
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+  - task: TerraformInstaller@0
+    displayName: Install Terraform latest
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Init'
+    inputs:
+      backendServiceArm: '.'
+      backendAzureRmResourceGroupName: '.'
+      backendAzureRmStorageAccountName: '.'
+      backendAzureRmContainerName: '.'
+      backendAzureRmKey: terraform.tfstate
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Validate'
+    inputs:
+      command: validate
+- job: Deploy
+  displayName: Terraform Deploy
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+  - task: TerraformInstaller@0
+    displayName: Install Terraform latest
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Init'
+    inputs:
+      backendServiceArm: '.'
+      backendAzureRmResourceGroupName: '.'
+      backendAzureRmStorageAccountName: '.'
+      backendAzureRmContainerName: '.'
+      backendAzureRmKey: terraform.tfstate
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Plan'
+    inputs:
+      command: plan
+      environmentServiceNameAzureRM: '.'
+  - task: TerraformTaskV2@2
+    displayName: 'Terraform : Validate and Apply'
+    inputs:
+      command: apply
+      environmentServiceNameAzureRM: '.'
